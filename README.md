@@ -9,26 +9,29 @@ fils, la génération des processus est faite par la primitive fork(), tandis qu
 par des tubes anonymes (pipe()).
 Nous allons désormais détailler quelques fragements de code source du projet :
 
-  int i, status, tmp;
-  pid_t pID;
-  int pP[CHILDS_NBR][2], pC[CHILDS_NBR][2];
-  char str[15] ;
+    int i, status, tmp;
+    pid_t pID;
+    int pP[CHILDS_NBR][2], pC[CHILDS_NBR][2];
+    char str[15] ;
 
 Dans le programme principal, on déclare les variables nécessaires parmis lesquelles on note deux
 tableaux bidimensionnels d'entiers, qui ne sont autres que les tubes que nous allons initialiser par la
 suite.
-pP[CHILDS_NBR][2] : pour « parent pipes » qui établi un lien entre le père et ses diffèrents fils, de
+
+`pP[CHILDS_NBR][2]` : pour « parent pipes » qui établi un lien entre le père et ses diffèrents fils, de
 façon à ce que, pour chacun de ces tubes, le père pourra alors écrire à son propre fils et le fils lire sur le
 même tube.
-pC[CHILDS_NBR][2] : pour « childs pipes » qui lui établi un lien mutuel entre les fils et leurs père, de
+`pC[CHILDS_NBR][2]` : pour « childs pipes » qui lui établi un lien mutuel entre les fils et leurs père, de
 façon à ce que chacun des fils puisse écrire sur un tube, donnant ainsi la main à son parent de lire sur le
 même tube.
-for(i = 0 ; i < CHILDS_NBR ; i++) {
-if(pipe(pP[i]) != 0 || pipe(pC[i]) != 0) {
-printf("impossible de créer les tubes\n");
-exit(0);
-}
-}
+
+    for(i = 0 ; i < CHILDS_NBR ; i++) {
+      if(pipe(pP[i]) != 0 || pipe(pC[i]) != 0) {
+        printf("impossible de créer les tubes\n");
+        exit(0);
+      }
+    }
+    
 Grâce à une boucle, on installe les tubes entre père et fils.
 La primitive pipe() retourne 0 si elle est executée avec succès, en cas d'échec, elle retourne -1.
 Le processus père enregistre son pid dans le tube convenant, le processus va, alors, lire la valeur depuis
