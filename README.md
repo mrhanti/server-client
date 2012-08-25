@@ -1,6 +1,4 @@
-# Rapport Client/Serveur
-mohamedridahanti
-# LES TUBES
+# Tubes
 
 # A-ECHANGE DE CIVILITE ENTRE PERE ET FILS
 
@@ -21,6 +19,7 @@ suite.
 `pP[CHILDS_NBR][2]` : pour « parent pipes » qui établi un lien entre le père et ses diffèrents fils, de
 façon à ce que, pour chacun de ces tubes, le père pourra alors écrire à son propre fils et le fils lire sur le
 même tube.
+
 `pC[CHILDS_NBR][2]` : pour « childs pipes » qui lui établi un lien mutuel entre les fils et leurs père, de
 façon à ce que chacun des fils puisse écrire sur un tube, donnant ainsi la main à son parent de lire sur le
 même tube.
@@ -34,11 +33,14 @@ même tube.
     
 Grâce à une boucle, on installe les tubes entre père et fils.
 La primitive pipe() retourne 0 si elle est executée avec succès, en cas d'échec, elle retourne -1.
+
 Le processus père enregistre son pid dans le tube convenant, le processus va, alors, lire la valeur depuis
 le tube puis enregistrer le message « merci !! » dans le tube convenant afin que père puisse le lire,
 finalement, ce dernier, de la même manière, envoie le message « Aurevoir !! » à son fils, puis attend la
 terminaison du fils, grâce à la primitive wait(&status).
-B-INCRÉMENTATION
+
+# B-INCRÉMENTATION
+
 Dans ce programme et contrairement au précédent, la communication se fait entre processus fils, le
 processus père, alors, ne fait que génèrer ces derniers.
 On commence toujours par installer les tubes entres les processus de la même manière que l'exercice
@@ -46,37 +48,45 @@ précédent.
 Puisqu'il sagit de la création de cinq fils, la meilleur façon est de mettre le traitement dans une boucle.
 Puis on appel la primitive fork()
 Le traitement ne doit être effectuer que lorsqu'il sagit d'un processus fils
-if(pID == 0) {
-printf("processus: %d | pid: %d\n", i, getpid());
+
+    if(pID == 0) {
+      printf("processus: %d | pid: %d\n", i, getpid());
+
 On accorde un traitement particulier au premier fils, puisque c'est lui qui doit initialiser le jeton et le
 placer dans le premier tube, qui est le sien.
 Une variable isInit est initialisée à 0 lors du lancement du programme, grâce à cette variable on teste si
 le jeton a été initialisé ou pas.
 S'il n'est pas initialisé, on l'initialise à 0, puis on change la valeur de la variable isInit, puis on le place
 dans le tube du processus courant.
-if(i == 0) {
-if(isInit == 0) {
-JETON = 0;
-isInit = 1;
-close(pC[i][READ]);
-write(pC[i][WRITE], &JETON, sizeof(JETON));
-printf("jeton initialisé [OK]\n");
-}
+
+    if(i == 0) {
+      if(isInit == 0) {
+      JETON = 0;
+      isInit = 1;
+      close(pC[i][READ]);
+      write(pC[i][WRITE], &JETON, sizeof(JETON));
+      printf("jeton initialisé [OK]\n");
+    }
+
 Le processus fils alors entre dans une boucle ou il récupère le jeton depuis le fils qui le précède,
 l'incrémente et l'enregistre dans son propre tube.
 Si jamais le jeton atteint 50, on change sa valeur à -1, et on l'enregistre tout de même dans le tube
 courant, cela déclenchera la fin des autres processus
-if(JETON > 50) {
-JETON = -1;
-printf("le jeton désormais est à -1\n");
-}
+
+    if(JETON > 50) {
+      JETON = -1;
+      printf("le jeton désormais est à -1\n");
+    }
+
 Enfin, On affiche la valeur qu'a atteint le jeton si cette dernière est différente de -1.
 L'algorithme qu'executeront les autres processus est similaire, tanque la valeur du jeton est différente de
 -1, le processus courant lit la valeur du jeton depuis le tube du processus le précède, et l'incrémente et
 l'écrit dans son propre tube.
-Si la valeur du jeton est -1, le processus courant écrit comme même le jeton dans son tube et se
-termine .
-C-PHRASES ALÉATOIRES
+
+Si la valeur du jeton est -1, le processus courant écrit comme même le jeton dans son tube et se termine.
+
+# C-PHRASES ALÉATOIRES
+
 Le défi le plus important dans ce programme pour nous était de génèrer un nombre aléatoire.
 En C comme en C++, cela se fait grâce aux primitives srand(unsigned int seed) qui permet d'initialiser
 le générateur de nombres pseudo-aléatoires avec une graine différente (1 par défaut), cette primitive
@@ -84,20 +94,23 @@ n'est appellé qu'une seule fois avant l'appel de rand().
 En d'autres termes, la génèration d'un nombre aléatoire ne C doit se fait en fonction d'une référence
 dynamique afin que le nombre qui est génèrer dans un moment t0 ne soit pas celui génèré au moment
 t1. On voit alors automatique comment la notion de temps s'est introduite dans l'algorithme, c'est en
-récupèrant alors le temps du système que l'ont va génèrer nos nombre aléatoires. Cela ressemblera à
-ça :
-...
-#include<time.h>
-...
-...
-srand(time(NULL)) ;
-...
-Sans oublier d'inclure l'entête time.h.
+récupèrant alors le temps du système que l'ont va génèrer nos nombre aléatoires. Cela ressemblera à ça :
+
+    ...
+    #include<time.h>
+    ...
+    ...
+    srand(time(NULL)) ;
+    ...
+
+Sans oublier d'inclure l'entête `time.h`.
+
 Le plus grand problème c'est qu'ici il sagit de la création de plusieurs processus, qui, chacun d'eux doit
 génèrer son propre nombre aléatoire. Chose qui se fait simultanément, on voit alors que le temps dans
 ce cas ne nous sert plus à faire grand chose, car tous les processus génèreront le même nombre
 aléatoire. Il faut alors introduire un paramètre qui varie d'un processus à un autre qui créera donc la
 différence du temps de création.
+
 Pour répondre à ce problème nous avons choisi le pid du processus comme paramètre supplémentaire,
 il suffit donc d'ajouter le pid au nombre génèrer par la primitive time(time_t) et on obtiendra donc un
 nombre aléatoire propre au processus qui le génère.
